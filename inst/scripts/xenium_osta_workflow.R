@@ -1,6 +1,7 @@
 # ============================================================
 # Xenium Human Colon workflow -- adapted from the OSTA book chapter:
 #   https://bioconductor.org/books/release/OSTA/pages/img-workflow-xenium.html
+#   (OSTA book, CC BY 4.0)
 #
 # The code follows the book. One difference: the book uses scrapper's
 # *.se wrappers (quickRnaQc.se, runPca.se, ...), which older scrapper

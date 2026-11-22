@@ -35,8 +35,10 @@ test_that("under load_all the cache stays in memory", {
 
 test_that("default image cache folder is separate from the map backgrounds", {
     expect_identical(basename(spatialCacheDir()), "plots")
-    expect_identical(dirname(spatialCacheDir()),
-                     tools::R_user_dir("spiSEE", "cache"))
+    # Windows writes the same folder with "/" or "\\"
+    slash <- function(p) chartr("\\", "/", p)
+    expect_identical(slash(dirname(spatialCacheDir())),
+                    slash(tools::R_user_dir("spiSEE", "cache")))
 })
 
 test_that("Compute keys depend on what is computed, not on when", {

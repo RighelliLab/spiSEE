@@ -40,6 +40,53 @@ dentate gyrus* then goes through a complete analysis of a real dataset:
 quality control of a whole brain section, cell polygons, niches, spatial
 domains, statistics and the apps.
 
+## Relation to other Bioconductor packages
+
+spiSEE is mainly an interactive front end. Several of
+its analyses call other Bioconductor packages, and it puts them in one
+`r BiocStyle::Biocpkg("iSEE")` app where a selection made in one panel
+is applied to all the others.
+
+```{r relation, echo = FALSE}
+pk <- c("Voyager", "SpaceTrooper", "ggspavis", "imcRtools", "Banksy")
+rel <- data.frame(
+    Package = vapply(pk, BiocStyle::Biocpkg, character(1)),
+    `What it does` = c(
+        paste("Exploratory spatial data analysis (e.g. Moran's I) on a",
+            "`SpatialFeatureExperiment`, from R code"),
+        paste("Quality control of imaging-based data (GLM-based QC score,",
+            "outlier detection), loaders and polygon plots"),
+        paste("Static `ggplot2` plots of spots, molecules, reduced",
+            "dimensions and QC"),
+        paste("Analysis of imaging mass cytometry and other multiplexed",
+            "imaging data: spatial graphs, neighbourhoods, interaction",
+            "tests"),
+        paste("Spatial clustering of cells from their own and their",
+            "neighbourhood expression (mean and azimuthal Gabor features)")),
+    `How spiSEE relates to it` = c(
+        paste("spiSEE calls it for global and local Moran's I and graph",
+            "plots, on a graph built with SpatialFeatureExperiment, and",
+            "shows the results in panels"),
+        paste("spiSEE uses it to load CosMx data; its QC panels plot the",
+            "metrics from `spatialPerCellQC()`"),
+        paste("spiSEE draws comparable maps, but interactive and linked to",
+            "the other panels"),
+        paste("Different data type (protein imaging); spiSEE targets",
+            "transcriptomics at cell resolution"),
+        paste("spiSEE's spatial domains use a simpler mix (own PCs plus",
+            "neighbourhood mean, Louvain); for a dedicated method, use",
+            "Banksy and show its labels in spiSEE")),
+    check.names = FALSE, row.names = NULL)
+knitr::kable(rel)
+```
+
+Spatial join counts come from `r BiocStyle::CRANpkg("spdep")` and
+L-functions from `r BiocStyle::Biocpkg("spatialFDA")`. Any label stored in
+`colData`, for example Banksy clusters, can be shown in the panels.
+
+Limits: one sample per app (choose it with `sample =`), and the panels are
+designed for cell-resolution data, not for spot-level Visium.
+
 # Installation
 
 ```{r install, eval = FALSE}
@@ -66,7 +113,10 @@ spe <- readAndAddPolygonsToSPE(spe)
 labels <- read.delim(file.path(dir, "labels_tiny.tsv"))
 spe$cell_type <- factor(labels$label[match(colnames(spe), labels$cell_id)])
 spe <- spe[!grepl("^NegPrb", rownames(spe)), ]
-spe <- scuttle::logNormCounts(spe)
+# Library-size normalisation (size factors centred at 1), then log2(x + 1).
+cn <- SingleCellExperiment::counts(spe)
+sf <- Matrix::colSums(cn)
+SingleCellExperiment::logcounts(spe) <- log2(t(t(cn) / (sf / mean(sf))) + 1)
 spe
 ```
 

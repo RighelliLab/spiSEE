@@ -52,8 +52,8 @@ NULL
     has_groups <- !is.na(group_col) &&
         group_col %in% colnames(colData(se)) &&
         !all(is.na(colData(se)[[group_col]]))
-    need_groups <- c("lest_plot", "lcross_plot", "locclust_plot",
-        "joincount_plot", "joincount_heatmap_plot")
+    need_groups <- c("lest_plot", "lcross_plot", "joincount_plot",
+        "joincount_heatmap_plot")
     # Unlabelled cells are left out only where the labels are used.
     if (has_groups && plot_type %in% need_groups)
         se <- se[, !is.na(colData(se)[[group_col]])]

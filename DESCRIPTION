@@ -1,6 +1,6 @@
 Package: spiSEE
 Title: Interactive Exploration of Cell-Resolution Spatial Transcriptomics with iSEE
-Version: 0.99.0
+Version: 0.99.3
 Authors@R:
     c(person("Emile", "Danvin", email = "emile.danvin@gmail.com",
         role = c("aut", "cre"),

@@ -379,6 +379,20 @@ test_that("local clusters and L-functions are drawn", {
     }
 })
 
+test_that("local clusters need a gene, not a cell-type column", {
+    skip_on_cran()
+    spe <- .makeTestVisiumHDSPE(n_cells = 90)
+    spe$Level1[1:5] <- NA
+    for (grp in list(NA_character_, "Level1")) {
+        p <- suppressWarnings(suppressMessages(.computeSpatialStat(spe,
+            "locclust_plot", genes = rownames(spe)[1], group_col = grp,
+            k = 6L)))
+        expect_true(inherits(p, "ggplot"))
+        title <- c(as.character(p$labels$title), "")[1]
+        expect_false(grepl("^(No |Not |Too |Choose)", title), info = title)
+    }
+})
+
 test_that("FOV tiles come from the FOV table, else from the cells", {
     spe <- .makeTestSPE()
     r <- .fovRects(spe)

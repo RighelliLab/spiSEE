@@ -5,6 +5,7 @@
 # Part 1 reproduces EVERY code chunk of the OSTA book chapter
 #   "Workflow: Visium HD (seg)"
 #   https://bioconductor.org/books/release/OSTA/pages/seq-workflow-visium-hd-seg.html
+#   (OSTA book, CC BY 4.0)
 # in order (sections 17.2-17.6), with each figure saved to <figdir>/ and each
 # printed result written to the console (pipe to a log file to keep it).
 # Code is the chapter's; only comments, print() and figure saving were added.

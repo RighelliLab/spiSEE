@@ -41,15 +41,39 @@ cached).
 
 # Reading the data
 
-```{r download}
+```{r libraries}
 library(spiSEE)
 library(SpaceTrooper)
 library(ggplot2)
+```
 
+```{r download, eval = FALSE}
 # OSTA.data_load() changes the working directory on first download:
 # run it from a temporary one.
 zip <- withr::with_dir(tempdir(),
     OSTA.data::OSTA.data_load("CosMx1k_MouseBrain2", mol = FALSE))
+```
+
+```{r download-retry, include = FALSE}
+# The same call, tried up to three times: the data are hosted on OSF, which
+# sometimes refuses downloads from build servers. Without the data, the
+# rest of the code is shown but not run.
+zip <- NULL
+for (i in seq_len(3)) {
+    zip <- tryCatch(withr::with_dir(tempdir(),
+        OSTA.data::OSTA.data_load("CosMx1k_MouseBrain2", mol = FALSE)),
+        error = function(e) NULL)
+    if (!is.null(zip)) break
+    Sys.sleep(60 * i)
+}
+have_data <- !is.null(zip)
+knitr::opts_chunk$set(eval = have_data)
+```
+
+`r if (!have_data) paste("**Note:** the data could not be downloaded when",
+"this vignette was built, so the code below is shown without its output.")`
+
+```{r unzip}
 dir <- tempfile()
 unzip(zip, exdir = dir)
 list.files(dir)
@@ -136,7 +160,7 @@ app <- spiSEE(spe, mode = "qc", cache = FALSE,
 if (interactive()) shiny::runApp(app)
 ```
 
-```{r shot-qc, echo = FALSE}
+```{r shot-qc, echo = FALSE, eval = TRUE}
 #| fig.cap = paste("QC app on the whole section with the nine dentate",
 #|     "gyrus FOVs selected (orange): total counts, QC histograms with outlier",
 #|     "fences, the FOV zoom coloured by quality score and the QC metrics",
@@ -205,7 +229,10 @@ Negative-control probes are removed before normalisation.
 
 ```{r norm}
 dg <- dg[!grepl("^NegPrb|^Negative|^SystemControl", rownames(dg)), ]
-dg <- scuttle::logNormCounts(dg)
+# Library-size normalisation (size factors centred at 1), then log2(x + 1).
+cn <- SingleCellExperiment::counts(dg)
+sf <- Matrix::colSums(cn)
+SingleCellExperiment::logcounts(dg) <- log2(t(t(cn) / (sf / mean(sf))) + 1)
 ```
 
 Three markers, one per structure: *Adcy1* (granule cells), *Pcp4*
@@ -329,7 +356,7 @@ The statistics panel offers, for a gene or for the cell types:
 * the L-function of the most frequent cell type and the L-cross function
     of the two most frequent ones (`r BiocStyle::Biocpkg("spatialFDA")`).
 
-```{r shot-stats, echo = FALSE}
+```{r shot-stats, echo = FALSE, eval = TRUE}
 #| fig.cap = paste("Local Moran's I of Adcy1 (left) and cell-type",
 #|     "co-occurrence of the twelve most frequent types (right), k = 15.")
 knitr::include_graphics("figures/cosmx_stats.jpg")
@@ -352,7 +379,7 @@ matter). The niche
 panel switches between niches, their composition, entropy, domains and
 expression clusters, drawn on the polygons.
 
-```{r shot-svg, echo = FALSE}
+```{r shot-svg, echo = FALSE, eval = TRUE}
 #| fig.cap = paste("Spatially variable genes linked to a spatial plot",
 #|     "(left) and niches on the polygons (right).")
 knitr::include_graphics("figures/cosmx_svg_niches.jpg")
@@ -388,6 +415,6 @@ app <- spiSEE(loadCosmx("dentate_gyrus.rds"))
 
 # Session information
 
-```{r session-info}
+```{r session-info, eval = TRUE}
 sessionInfo()
 ```
