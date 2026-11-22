@@ -229,7 +229,10 @@ Negative-control probes are removed before normalisation.
 
 ```{r norm}
 dg <- dg[!grepl("^NegPrb|^Negative|^SystemControl", rownames(dg)), ]
-dg <- scuttle::logNormCounts(dg)
+# Library-size normalisation (size factors centred at 1), then log2(x + 1).
+cn <- SingleCellExperiment::counts(dg)
+sf <- Matrix::colSums(cn)
+SingleCellExperiment::logcounts(dg) <- log2(t(t(cn) / (sf / mean(sf))) + 1)
 ```
 
 Three markers, one per structure: *Adcy1* (granule cells), *Pcp4*

@@ -66,7 +66,10 @@ spe <- readAndAddPolygonsToSPE(spe)
 labels <- read.delim(file.path(dir, "labels_tiny.tsv"))
 spe$cell_type <- factor(labels$label[match(colnames(spe), labels$cell_id)])
 spe <- spe[!grepl("^NegPrb", rownames(spe)), ]
-spe <- scuttle::logNormCounts(spe)
+# Library-size normalisation (size factors centred at 1), then log2(x + 1).
+cn <- SingleCellExperiment::counts(spe)
+sf <- Matrix::colSums(cn)
+SingleCellExperiment::logcounts(spe) <- log2(t(t(cn) / (sf / mean(sf))) + 1)
 spe
 ```
 
